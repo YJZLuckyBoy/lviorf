@@ -1,0 +1,23 @@
+<launch>
+
+    <arg name="project" default="lviorf"/>
+    
+    <!-- Lidar odometry param -->
+    <rosparam file="$(find lviorf)/config/pinhole/kitti_params_lidar.yaml" command="load" />
+    
+    <!-- VINS config -->
+    <param name="vins_config_file" type="string" value="$(find lviorf)/config/pinhole/kitti_params_camera.yaml" />
+
+    <!--- LOAM -->
+    <include file="$(find lviorf)/launch/include/module_loam.launch" />
+
+    <!--- Robot State TF -->
+    <!-- <include file="$(find lviorf)/launch/include/module_robot_state_publisher.launch" /> -->
+
+    <!--- Run Navsat -->
+    <!-- <include file="$(find lviorf)/launch/include/module_navsat.launch" /> -->
+
+    <!--- Run Rviz-->
+    <include file="$(find lviorf)/launch/include/module_rviz.launch" />
+
+</launch>
