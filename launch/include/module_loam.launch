@@ -11,7 +11,4 @@
     <node pkg="$(arg project)"      type="$(arg project)_visual_odometry"     name="$(arg project)_visual_odometry"      output="screen"     respawn="false"/>
     <node pkg="$(arg project)"      type="$(arg project)_visual_loop"         name="$(arg project)_visual_loop"          output="screen"     respawn="false"/>
 
-    <!-- Image conversion -->
-    <node pkg="image_transport" type="republish" name="$(arg project)_republish" args="compressed in:=/camera/image_raw raw out:=/camera/image_raw" output="screen" respawn="true"/>
-
 </launch>

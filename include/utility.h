@@ -140,6 +140,7 @@ public:
     float surroundingKeyframeSearchRadius;
     
     // Loop closure
+    bool  visualLoopClosureEnableFlag;
     bool  loopClosureEnableFlag;
     float loopClosureFrequency;
     int   surroundingKeyframeSize;
@@ -239,6 +240,7 @@ public:
         nh.param<float>("lviorf/loopClosureICPSurfLeafSize", loopClosureICPSurfLeafSize, 0.3);
         nh.param<float>("lviorf/surroundingKeyframeSearchRadius", surroundingKeyframeSearchRadius, 50.0);
 
+        nh.param<bool>("lviorf/visualLoopClosureEnableFlag", visualLoopClosureEnableFlag, false);
         nh.param<bool>("lviorf/loopClosureEnableFlag", loopClosureEnableFlag, false);
         nh.param<float>("lviorf/loopClosureFrequency", loopClosureFrequency, 1.0);
         nh.param<int>("lviorf/surroundingKeyframeSize", surroundingKeyframeSize, 50);

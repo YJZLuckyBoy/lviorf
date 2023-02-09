@@ -164,7 +164,7 @@ public:
 
         subCloud = nh.subscribe<lviorf::cloud_info>("lviorf/deskew/cloud_info", 1, &mapOptimization::laserCloudInfoHandler, this, ros::TransportHints().tcpNoDelay());
         subGPS   = nh.subscribe<sensor_msgs::NavSatFix> (gpsTopic, 200, &mapOptimization::gpsHandler, this, ros::TransportHints().tcpNoDelay());
-        subLoop  = nh.subscribe<std_msgs::Float64MultiArray>("lio_loop/loop_closure_detection", 1, &mapOptimization::loopInfoHandler, this, ros::TransportHints().tcpNoDelay());
+        subLoop  = nh.subscribe<std_msgs::Float64MultiArray>("/lviorf/vins/loop/match_frame", 1, &mapOptimization::loopInfoHandler, this, ros::TransportHints().tcpNoDelay());
 
         srvSaveMap  = nh.advertiseService("lviorf/save_map", &mapOptimization::saveMapService, this);
 
@@ -489,17 +489,6 @@ public:
         publishCloud(pubLaserCloudSurround, globalMapKeyFramesDS, timeLaserInfoStamp, odometryFrame);
     }
 
-
-
-
-
-
-
-
-
-
-
-
     void loopClosureThread()
     {
         if (loopClosureEnableFlag == false)
@@ -510,20 +499,34 @@ public:
         {
             rate.sleep();
             performLoopClosure();
-            visualizeLoopClosure();
+            // visualizeLoopClosure();
         }
     }
 
     void loopInfoHandler(const std_msgs::Float64MultiArray::ConstPtr& loopMsg)
     {
-        std::lock_guard<std::mutex> lock(mtxLoopInfo);
-        if (loopMsg->data.size() != 2)
-            return;
+        if (!visualLoopClosureEnableFlag)
+          return;
 
-        loopInfoVec.push_back(*loopMsg);
+        // control loop closure frequency
+        static double last_loop_closure_time = -1;
+        {
+            // std::lock_guard<std::mutex> lock(mtx);
+            if (timeLaserInfoCur - last_loop_closure_time < 5.0)
+                return;
+            else
+                last_loop_closure_time = timeLaserInfoCur;
+        }
 
-        while (loopInfoVec.size() > 5)
-            loopInfoVec.pop_front();
+        // find keys
+        int loopKeyCur;
+        int loopKeyPre;
+        if (detectLoopClosureExternal(&loopKeyCur, &loopKeyPre, *loopMsg) == false)
+          return;
+
+        processICP(loopKeyCur, loopKeyPre);
+
+        visualizeLoopClosure();
     }
 
     void performLoopClosure()
@@ -539,10 +542,132 @@ public:
         // find keys
         int loopKeyCur;
         int loopKeyPre;
-        if (detectLoopClosureExternal(&loopKeyCur, &loopKeyPre) == false)
-            if (detectLoopClosureDistance(&loopKeyCur, &loopKeyPre) == false)
-                return;
 
+        if (detectLoopClosureDistance(&loopKeyCur, &loopKeyPre) == false)
+            return;
+
+        processICP(loopKeyCur, loopKeyPre);
+
+        visualizeLoopClosure();
+    }
+
+    bool detectLoopClosureDistance(int *latestID, int *closestID)
+    {
+        int loopKeyCur = copy_cloudKeyPoses3D->size() - 1;
+        int loopKeyPre = -1;
+
+        // check loop constraint added before
+        auto it = loopIndexContainer.find(loopKeyCur);
+        if (it != loopIndexContainer.end())
+            return false;
+
+        // find the closest history key frame
+        std::vector<int> pointSearchIndLoop;
+        std::vector<float> pointSearchSqDisLoop;
+        kdtreeHistoryKeyPoses->setInputCloud(copy_cloudKeyPoses3D);
+        kdtreeHistoryKeyPoses->radiusSearch(copy_cloudKeyPoses3D->back(), historyKeyframeSearchRadius, pointSearchIndLoop, pointSearchSqDisLoop, 0);
+        
+        for (int i = 0; i < (int)pointSearchIndLoop.size(); ++i)
+        {
+            int id = pointSearchIndLoop[i];
+            if (abs(copy_cloudKeyPoses6D->points[id].time - timeLaserInfoCur) > historyKeyframeSearchTimeDiff)
+            {
+                loopKeyPre = id;
+                break;
+            }
+        }
+
+        if (loopKeyPre == -1 || loopKeyCur == loopKeyPre)
+            return false;
+
+        *latestID = loopKeyCur;
+        *closestID = loopKeyPre;
+
+        return true;
+    }
+
+    bool detectLoopClosureExternal(int *latestID, int *closestID, const std_msgs::Float64MultiArray& loopMsg)
+    {
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            *copy_cloudKeyPoses6D = *cloudKeyPoses6D;
+        }
+
+        // this function is not used yet, please ignore it
+        int loopKeyCur = -1;
+        int loopKeyPre = -1;
+
+        if (loopMsg.data.size() != 2)
+            return false;
+
+        double loopTimeCur = loopMsg.data[0];
+        double loopTimePre = loopMsg.data[1];
+
+        if (abs(loopTimeCur - loopTimePre) < historyKeyframeSearchTimeDiff)
+            return false;
+
+        int cloudSize = copy_cloudKeyPoses6D->size();
+        if (cloudSize < 2)
+            return false;
+
+        // latest key
+        loopKeyCur = cloudSize - 1;
+        for (int i = cloudSize - 1; i >= 0; --i)
+        {
+            if (copy_cloudKeyPoses6D->points[i].time >= loopTimeCur)
+                loopKeyCur = round(copy_cloudKeyPoses6D->points[i].intensity);
+            else
+                break;
+        }
+
+        // previous key
+        loopKeyPre = 0;
+        for (int i = 0; i < cloudSize; ++i)
+        {
+            if (copy_cloudKeyPoses6D->points[i].time <= loopTimePre)
+                loopKeyPre = round(copy_cloudKeyPoses6D->points[i].intensity);
+            else
+                break;
+        }
+
+        if (loopKeyCur == loopKeyPre || loopKeyPre == -1 || loopKeyCur == -1)
+            return false;
+
+        auto it = loopIndexContainer.find(loopKeyCur);
+        if (it != loopIndexContainer.end())
+            return false;
+
+        *latestID = loopKeyCur;
+        *closestID = loopKeyPre;
+
+        return true;
+    }
+
+    void loopFindNearKeyframes(pcl::PointCloud<PointType>::Ptr& nearKeyframes, const int& key, const int& searchNum)
+    {
+        // extract near keyframes
+        nearKeyframes->clear();
+        int cloudSize = copy_cloudKeyPoses6D->size();
+        for (int i = -searchNum; i <= searchNum; ++i)
+        {
+            int keyNear = key + i;
+            if (keyNear < 0 || keyNear >= cloudSize )
+                continue;
+            *nearKeyframes += *transformPointCloud(surfCloudKeyFrames[keyNear],   &copy_cloudKeyPoses6D->points[keyNear]);
+        }
+
+        if (nearKeyframes->empty())
+            return;
+
+        // downsample near keyframes
+        pcl::PointCloud<PointType>::Ptr cloud_temp(new pcl::PointCloud<PointType>());
+        downSizeFilterICP.setInputCloud(nearKeyframes);
+        downSizeFilterICP.filter(*cloud_temp);
+        *nearKeyframes = *cloud_temp;
+    }
+
+    void processICP(const int& loopKeyCur, const int& loopKeyPre)
+    {
         // extract cloud
         pcl::PointCloud<PointType>::Ptr cureKeyframeCloud(new pcl::PointCloud<PointType>());
         pcl::PointCloud<PointType>::Ptr prevKeyframeCloud(new pcl::PointCloud<PointType>());
@@ -556,7 +681,7 @@ public:
         }
 
         // ICP Settings
-        static pcl::IterativeClosestPoint<PointType, PointType> icp;
+        pcl::IterativeClosestPoint<PointType, PointType> icp;
         icp.setMaxCorrespondenceDistance(historyKeyframeSearchRadius*2);
         icp.setMaximumIterations(100);
         icp.setTransformationEpsilon(1e-6);
@@ -605,118 +730,6 @@ public:
 
         // add loop constriant
         loopIndexContainer[loopKeyCur] = loopKeyPre;
-    }
-
-    bool detectLoopClosureDistance(int *latestID, int *closestID)
-    {
-        int loopKeyCur = copy_cloudKeyPoses3D->size() - 1;
-        int loopKeyPre = -1;
-
-        // check loop constraint added before
-        auto it = loopIndexContainer.find(loopKeyCur);
-        if (it != loopIndexContainer.end())
-            return false;
-
-        // find the closest history key frame
-        std::vector<int> pointSearchIndLoop;
-        std::vector<float> pointSearchSqDisLoop;
-        kdtreeHistoryKeyPoses->setInputCloud(copy_cloudKeyPoses3D);
-        kdtreeHistoryKeyPoses->radiusSearch(copy_cloudKeyPoses3D->back(), historyKeyframeSearchRadius, pointSearchIndLoop, pointSearchSqDisLoop, 0);
-        
-        for (int i = 0; i < (int)pointSearchIndLoop.size(); ++i)
-        {
-            int id = pointSearchIndLoop[i];
-            if (abs(copy_cloudKeyPoses6D->points[id].time - timeLaserInfoCur) > historyKeyframeSearchTimeDiff)
-            {
-                loopKeyPre = id;
-                break;
-            }
-        }
-
-        if (loopKeyPre == -1 || loopKeyCur == loopKeyPre)
-            return false;
-
-        *latestID = loopKeyCur;
-        *closestID = loopKeyPre;
-
-        return true;
-    }
-
-    bool detectLoopClosureExternal(int *latestID, int *closestID)
-    {
-        // this function is not used yet, please ignore it
-        int loopKeyCur = -1;
-        int loopKeyPre = -1;
-
-        std::lock_guard<std::mutex> lock(mtxLoopInfo);
-        if (loopInfoVec.empty())
-            return false;
-
-        double loopTimeCur = loopInfoVec.front().data[0];
-        double loopTimePre = loopInfoVec.front().data[1];
-        loopInfoVec.pop_front();
-
-        if (abs(loopTimeCur - loopTimePre) < historyKeyframeSearchTimeDiff)
-            return false;
-
-        int cloudSize = copy_cloudKeyPoses6D->size();
-        if (cloudSize < 2)
-            return false;
-
-        // latest key
-        loopKeyCur = cloudSize - 1;
-        for (int i = cloudSize - 1; i >= 0; --i)
-        {
-            if (copy_cloudKeyPoses6D->points[i].time >= loopTimeCur)
-                loopKeyCur = round(copy_cloudKeyPoses6D->points[i].intensity);
-            else
-                break;
-        }
-
-        // previous key
-        loopKeyPre = 0;
-        for (int i = 0; i < cloudSize; ++i)
-        {
-            if (copy_cloudKeyPoses6D->points[i].time <= loopTimePre)
-                loopKeyPre = round(copy_cloudKeyPoses6D->points[i].intensity);
-            else
-                break;
-        }
-
-        if (loopKeyCur == loopKeyPre)
-            return false;
-
-        auto it = loopIndexContainer.find(loopKeyCur);
-        if (it != loopIndexContainer.end())
-            return false;
-
-        *latestID = loopKeyCur;
-        *closestID = loopKeyPre;
-
-        return true;
-    }
-
-    void loopFindNearKeyframes(pcl::PointCloud<PointType>::Ptr& nearKeyframes, const int& key, const int& searchNum)
-    {
-        // extract near keyframes
-        nearKeyframes->clear();
-        int cloudSize = copy_cloudKeyPoses6D->size();
-        for (int i = -searchNum; i <= searchNum; ++i)
-        {
-            int keyNear = key + i;
-            if (keyNear < 0 || keyNear >= cloudSize )
-                continue;
-            *nearKeyframes += *transformPointCloud(surfCloudKeyFrames[keyNear],   &copy_cloudKeyPoses6D->points[keyNear]);
-        }
-
-        if (nearKeyframes->empty())
-            return;
-
-        // downsample near keyframes
-        pcl::PointCloud<PointType>::Ptr cloud_temp(new pcl::PointCloud<PointType>());
-        downSizeFilterICP.setInputCloud(nearKeyframes);
-        downSizeFilterICP.filter(*cloud_temp);
-        *nearKeyframes = *cloud_temp;
     }
 
     void visualizeLoopClosure()

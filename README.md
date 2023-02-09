@@ -21,7 +21,15 @@ Lviorf is a lidar-visual-inertial odometry and mapping system, which modified ba
 
 - The original version of lvi-sam dose not consider the translation amount between lidar and camera, this version adds the translation amount;
 
-- Support ubran-nav datasets;
+- In the lio system, you can choose whether to add visual loop closure constraint by changing the yaml file:
+  ```
+  visualLoopClosureEnableFlag: true     # visual loop closure
+  loopClosureEnableFlag: true           # RS loop closure
+  ```
+
+- Support ubranNav datasets;
+
+- Support M2DGR datasets;
 
 - Support kitti datasets.
 
@@ -56,25 +64,36 @@ Video：[unkown]()
   ```
     gpsTopic: "gps/fix"    # GPS topic
   ```
-- If you want to use lviorf with integrated gps factor in kitti dataset, you can use the modified python script in "config/doc/kitti2bag" to obtain high-frequency gps data(Rate: 100HZ, Topic: '/gps/fix/correct'). About how to use "kitti2bag.py", please refer to [doc/kitti2bag](https://github.com/TixiaoShan/LIO-SAM/tree/master/config/doc/kitti2bag).
+- If you want to use lviorf with integrated gps factor in kitti dataset, you can use the modified python script in "config/doc/kitti2bag" to obtain high-frequency gps data(Rate: 100HZ, Topic: '/gps/fix/correct'). About how to use "kitti2bag.py", please refer to [doc/kitti2bag](https://github.com/TixiaoShan/LIO-SAM/tree/master/config/doc/kitti2bag);
 
-- For more details, please check the demo video: [unkown]()
+- The synchronized bag can be downloaded from Google Driver. [kitti_2011_09_30_drive_0018_synced.bag](https://drive.google.com/file/d/1uLSVayprhJcTqvY5q8lgRoWl8nNjkWAM/view?usp=share_link)
+
+- For more details, please check the demo video: [unkown]().
 
 ## Mapping
   1. lvi-sam dataset
-
-  2. kitti dataset
-
+  <p align='center'>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/lvi-sam-dataset.gif" alt="drawing" width="800" height = "400"/>
+  </p>
+  2. kitti 05 dataset
+  <p align='center'>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/Kitti05.gif" alt="drawing" width="800" height = "400"/>
+  </p>
   3. ubran_hongkong dataset
-
-  4. my data
+  <p align='center'>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/UbranNavDataset.gif" alt="drawing" width="800" height = "400"/>
+  </p>
+  4. my dataset
+  <p align='center'>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/device00.png" alt="drawing" width="400"/>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/device01.png" alt="drawing" width="400"/>
+  </p>
 
 ## Performance
   1. Kitti 05
 
 ## TODO
 - [ ] Add performance comparison;
-- [ ] Add visual loop.
 
 ## Acknowledgments
   Thanks for [LVI-SAM](https://github.com/TixiaoShan/LVI-SAM), [FAST_LIO2](https://github.com/hku-mars/FAST_LIO) and [UrbanNavDataset](https://github.com/weisongwen/UrbanNavDataset).

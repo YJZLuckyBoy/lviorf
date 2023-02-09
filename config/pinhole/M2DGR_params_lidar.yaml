@@ -1,10 +1,10 @@
 lviorf:
 
   # Topics
-  pointCloudTopic: "points_raw"               # Point cloud data
-  imuTopic: "imu_raw"                         # IMU data
+  pointCloudTopic: "velodyne_points"               # Point cloud data
+  imuTopic: "handsfree/imu"                         # IMU data
   odomTopic: "odometry/imu"                   # IMU pre-preintegration odometry, same frequency as IMU
-  gpsTopic: "/gps/fix/correctz"                   # GPS odometry topic from navsat, see module_navsat.launch file
+  gpsTopic: "gps/fixz"                   # GPS odometry topic from navsat, see module_navsat.launch file
 
   # Frames
   lidarFrame: "base_link"
@@ -24,33 +24,33 @@ lviorf:
 
   # Sensor Settings
   sensor: velodyne                            # lidar sensor type, 'velodyne' or 'ouster' or 'livox' or 'robosense'
-  N_SCAN: 64                                  # number of lidar channel (i.e., Velodyne/Ouster: 16, 32, 64, 128, Livox Horizon: 6)
+  N_SCAN: 32                                  # number of lidar channel (i.e., Velodyne/Ouster: 16, 32, 64, 128, Livox Horizon: 6)
   Horizon_SCAN: 1800                          # lidar horizontal resolution (Velodyne:1800, Ouster:512,1024,2048, Livox Horizon: 4000)
-  downsampleRate: 2                           # default: 1. Downsample your data if too many points(line). i.e., 16 = 64 / 4, 16 = 16 / 1
+  downsampleRate: 1                           # default: 1. Downsample your data if too many points(line). i.e., 16 = 64 / 4, 16 = 16 / 1
   point_filter_num: 5                         # default: 3. Downsample your data if too many points(point). e.g., 16: 1, 32: 5, 64: 8
-  lidarMinRange: 1.0                          # default: 1.0, minimum lidar range to be used
+  lidarMinRange: 2.0                          # default: 1.0, minimum lidar range to be used
   lidarMaxRange: 1000.0                       # default: 1000.0, maximum lidar range to be used
 
   # IMU Settings
   imuType: 0                                  # 0: 6-axis  1: 9-axis
   imuRate: 100.0
-  imuAccNoise: 3.9939570888238808e-03
-  imuGyrNoise: 1.5636343949698187e-03
-  imuAccBiasN: 6.4356659353532566e-05
-  imuGyrBiasN: 3.5640318696367613e-05
+  imuAccNoise: 3.7686306102624571e-02
+  imuGyrNoise: 2.3417543020438883e-03
+  imuAccBiasN: 1.1416642385952368e-03
+  imuGyrBiasN: 1.4428407712885209e-05
   imuGravity: 9.80511
   imuRPYWeight: 0.01
 
   # Extrinsics: T_lb (lidar -> imu)
-  extrinsicTrans: [-8.086759e-01, 3.195559e-01, -7.997231e-01]
-  extrinsicRot: [9.999976e-01, 7.553071e-04, -2.035826e-03, 
-                  -7.854027e-04, 9.998898e-01, -1.482298e-02, 
-                  2.024406e-03, 1.482454e-02, 9.998881e-01]
+  extrinsicTrans: [0.27255, -0.00053,0.17954]
+  extrinsicRot: [1, 0, 0,
+                  0, 1, 0,
+                  0, 0, 1]
 
   # This parameter is set only when the 9-axis IMU is used, but it must be a high-precision IMU. e.g. MTI-680
-  extrinsicRPY: [9.999976e-01, 7.553071e-04, -2.035826e-03, 
-                  -7.854027e-04, 9.998898e-01, -1.482298e-02, 
-                  2.024406e-03, 1.482454e-02, 9.998881e-01]
+  extrinsicRPY: [1, 0, 0,
+                  0, 1, 0,
+                  0, 0, 1]
 
   # voxel filter paprams
   mappingSurfLeafSize: 0.4                      # default: 0.4 - outdoor, 0.2 - indoor
@@ -83,8 +83,8 @@ lviorf:
 
   # Visualization
   globalMapVisualizationSearchRadius: 1000.0    # meters, global map visualization radius
-  globalMapVisualizationPoseDensity: 0.15       # meters, global map visualization keyframe density
-  globalMapVisualizationLeafSize: 0.3           # meters, global map visualization cloud density
+  globalMapVisualizationPoseDensity: 10.0       # meters, global map visualization keyframe density
+  globalMapVisualizationLeafSize: 1.0           # meters, global map visualization cloud density
 
 
 

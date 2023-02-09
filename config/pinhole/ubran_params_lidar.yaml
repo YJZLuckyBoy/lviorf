@@ -71,6 +71,7 @@ lviorf:
   surroundingKeyframeMapLeafSize: 0.5           # downsample local map point cloud
 
   # Loop closure
+  visualLoopClosureEnableFlag: true
   loopClosureEnableFlag: true
   loopClosureFrequency: 1.0                     # Hz, regulate loop closure constraint add frequency
   surroundingKeyframeSize: 50                   # submap size (when loop closure enabled)
