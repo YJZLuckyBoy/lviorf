@@ -34,7 +34,7 @@ Lviorf is a lidar-visual-inertial odometry and mapping system, which modified ba
 
 Blog：[LVI-SAM：配置环境、安装测试、适配自己采集数据集](https://blog.csdn.net/qq_42938987/article/details/126005082?spm=1001.2014.3001.5501)
 
-Video：[unkown]()
+Video：[基于LIO-SAM框架SLAM算法开发（八）：建图之雷达视觉惯性融合建图-lviorf](https://www.bilibili.com/video/BV1ce4y1w7ND/?share_source=copy_web&vd_source=dee7afd16d8b7115a533915be5690f55)
 
 ## Run the package
 1. compile package
@@ -66,8 +66,6 @@ Video：[unkown]()
 - If you want to use lviorf with integrated gps factor in kitti dataset, you can use the modified python script in "config/doc/kitti2bag" to obtain high-frequency gps data(Rate: 100HZ, Topic: '/gps/fix/correct'). About how to use "kitti2bag.py", please refer to [doc/kitti2bag](https://github.com/TixiaoShan/LIO-SAM/tree/master/config/doc/kitti2bag);
 
 - The synchronized bag can be downloaded from Google Driver. [kitti_2011_09_30_drive_0018_synced.bag](https://drive.google.com/file/d/1uLSVayprhJcTqvY5q8lgRoWl8nNjkWAM/view?usp=share_link)
-
-- For more details, please check the demo video: [unkown]().
 
 ## How to run your own data
 With lviorf, you can easily run your own dataset, and only modify the following parameters for the yaml file:
@@ -177,7 +175,7 @@ extrinsicTranslation: !!opencv-matrix
 - [ ] Add performance comparison;
 
 ## Acknowledgments
-  Thanks for [LVI-SAM](https://github.com/TixiaoShan/LVI-SAM), [FAST_LIO2](https://github.com/hku-mars/FAST_LIO) and [UrbanNavDataset](https://github.com/weisongwen/UrbanNavDataset).
+  Thanks for [LVI-SAM](https://github.com/TixiaoShan/LVI-SAM), [FAST_LIO2](https://github.com/hku-mars/FAST_LIO), [M2DGR](https://github.com/SJTU-ViSYS/M2DGR) and [UrbanNavDataset](https://github.com/weisongwen/UrbanNavDataset).
 
 # LVI-SAM
 
