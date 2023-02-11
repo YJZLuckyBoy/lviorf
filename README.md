@@ -26,8 +26,7 @@ Lviorf is a lidar-visual-inertial odometry and mapping system, which modified ba
   visualLoopClosureEnableFlag: true     # visual loop closure
   loopClosureEnableFlag: true           # RS loop closure
   ```
-
-- Support ubranNav datasets;
+- Support UbranNav datasets;
 
 - Support M2DGR datasets;
 
@@ -70,23 +69,105 @@ Video：[unkown]()
 
 - For more details, please check the demo video: [unkown]().
 
+## How to run your own data
+With lviorf, you can easily run your own dataset, and only modify the following parameters for the yaml file:
+1. *_camera.yaml
+```
+imu_topic: "/imu/data"               # IMU Topic
+image_topic: "/camera/image_color"   # Camera Topic
+
+# camera model
+model_type: PINHOLE
+camera_name: camera
+image_width: 1920
+image_height: 1200
+distortion_parameters:
+   k1: -0.109203
+   k2: 0.063536
+   p1: -0.003427
+   p2: -0.000629
+projection_parameters:
+   fx: 1086.160899
+   fy: 1090.242963
+   cx: 940.067502
+   cy: 586.740077
+
+#imu parameters       The more accurate parameters you provide, the worse performance
+acc_n: 8.1330537434371481e-03         # accelerometer measurement noise standard deviation.
+gyr_n: 7.4266825125507141e-03         # gyroscope measurement noise standard deviation.
+acc_w: 1.2123362494392119e-04        # accelerometer bias random work noise standard deviation.
+gyr_w: 8.6572985145653080e-05       # gyroscope bias random work noise standard deviation.
+
+#Rotation from camera frame to imu frame, imu^R_cam
+extrinsicRotation: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [ 9.9934608718980233e-01, -1.5715484428488590e-02,-3.2564114721728155e-02, 
+           3.2359037356803094e-02, -1.3131917124154624e-02,9.9939003669937865e-01, 
+           -1.6133527815482926e-02, -9.9979026615676858e-01,-1.2614792047622947e-02]
+
+#Translation from camera frame to imu frame, imu^T_cam
+extrinsicTranslation: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+   data: [-1.7434527332030676e-02, 1.7171139776467173e-01, -4.5251036141047592e-02]
+```
+2. *_lidar.yaml
+```
+  pointCloudTopic: "/velodyne_points"           # Lidar Topic
+  imuTopic: "/imu/data"                         # IMU Topic
+
+  # Sensor Settings
+  sensor: velodyne           # lidar sensor type, 'velodyne' or 'ouster' or 'livox' or 'robosense'
+  N_SCAN: 32                 # number of lidar channel (i.e., Velodyne/Ouster: 16, 32, 64, 128, Livox Horizon: 6)
+  Horizon_SCAN: 2000         # lidar horizontal resolution (Velodyne:1800, Ouster:512,1024,2048, Livox Horizon: 4000)
+  
+  # IMU Settings
+  imuType: 0                                  # 0: 6-axis  1: 9-axis
+  imuRate: 100.0
+  imuAccNoise: 8.1330537434371481e-03
+  imuGyrNoise: 7.4266825125507141e-03
+  imuAccBiasN: 1.2123362494392119e-04
+  imuGyrBiasN: 8.6572985145653080e-05
+
+  # Extrinsics: T_lb (lidar -> imu)
+  extrinsicTrans: [0.0, 0.0, 0.0]
+  extrinsicRot: [1, 0, 0,
+                  0, 1, 0,
+                  0, 0, 1]
+
+  # This parameter is set only when the 9-axis IMU is used, but it must be a high-precision IMU. e.g. MTI-680
+  extrinsicRPY: [0, -1, 0,
+                 1, 0, 0,
+                 0, 0, 1]
+```
 ## Mapping
   1. lvi-sam dataset
   <p align='center'>
-      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/lvi-sam-dataset.gif" alt="drawing" width="800" height = "400"/>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/lvi-sam/lvi-sam-dataset.gif" alt="drawing" width="800" height = "400"/>
   </p>
-  2. kitti 05 dataset
+  2. kitti-05 dataset
   <p align='center'>
-      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/Kitti05.gif" alt="drawing" width="800" height = "400"/>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/Kitti/Kitti05.gif" alt="drawing" width="800" height = "400"/>
   </p>
-  3. ubran_hongkong dataset
+  3. UbranNav dataset
   <p align='center'>
-      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/UbranNavDataset.gif" alt="drawing" width="800" height = "400"/>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/UbranNav/UbranNavDataset.gif" alt="drawing" width="800" height = "400"/>
   </p>
-  4. my dataset
+  4. M2DGR dataset
   <p align='center'>
-      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/device00.png" alt="drawing" width="400"/>
-      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/device01.png" alt="drawing" width="400"/>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/M2DGR/gate_01.gif" alt="drawing" width="800" height = "400"/>
+  </p>
+  5. R3live dataset
+  <p align='center'>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/R3live/hku_main_building.gif" alt="drawing" width="800" height = "400"/>
+  </p>
+  6. My dataset
+  <p align='center'>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/Mydata/device00.png" alt="drawing" width="400"/>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/Mydata/device01.png" alt="drawing" width="400"/>
   </p>
 
 ## Performance
