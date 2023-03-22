@@ -3,10 +3,10 @@
     <arg name="project" default="lviorf"/>
     
     <!-- Lidar odometry param -->
-    <rosparam file="$(find lviorf)/config/pinhole/ubran_params_lidar.yaml" command="load" />
+    <rosparam file="$(find lviorf)/config/pinhole/urban_params_lidar.yaml" command="load" />
     
     <!-- VINS config -->
-    <param name="vins_config_file" type="string" value="$(find lviorf)/config/pinhole/ubran_params_camera.yaml" />
+    <param name="vins_config_file" type="string" value="$(find lviorf)/config/pinhole/urban_params_camera.yaml" />
 
     <!--- LOAM -->
     <include file="$(find lviorf)/launch/include/module_loam.launch" />
