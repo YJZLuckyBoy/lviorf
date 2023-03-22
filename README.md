@@ -26,7 +26,7 @@ Lviorf is a lidar-visual-inertial odometry and mapping system, which modified ba
   visualLoopClosureEnableFlag: true     # visual loop closure
   loopClosureEnableFlag: true           # RS loop closure
   ```
-- Support UbranNav datasets;
+- Support UrbanNav datasets;
 
 - Support M2DGR datasets;
 
@@ -150,9 +150,9 @@ extrinsicTranslation: !!opencv-matrix
   <p align='center'>
       <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/Kitti/Kitti05.gif" alt="drawing" width="800" height = "400"/>
   </p>
-  3. UbranNav dataset
+  3. UrbanNav dataset
   <p align='center'>
-      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/UbranNav/UbranNavDataset.gif" alt="drawing" width="800" height = "400"/>
+      <img src="https://github.com/YJZLuckyBoy/pic/blob/master/lviorf/UrbanNav/UrbanNavDataset.gif" alt="drawing" width="800" height = "400"/>
   </p>
   4. M2DGR dataset
   <p align='center'>
